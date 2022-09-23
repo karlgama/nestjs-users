@@ -1,3 +1,5 @@
+import { NestResponseBuilder } from './../core/http/nest-response-builder';
+import { NestResponse } from './../core/http/nest-response';
 import { Usuario } from './usuario.entity';
 import { UsuarioService } from './usuario.service';
 import {
@@ -5,9 +7,9 @@ import {
   Controller,
   Get,
   HttpStatus,
+  NotFoundException,
   Param,
   Post,
-  Res,
 } from '@nestjs/common';
 
 @Controller('users')
@@ -15,15 +17,25 @@ export class UsuarioController {
   constructor(private usuarioService: UsuarioService) {}
   @Get(':nome')
   public buscarPorNomeDeUsuario(@Param('nome') nome: string) {
-    return this.usuarioService.buscaPorNome(nome);
+    const user = this.usuarioService.buscaPorNome(nome);
+    if (!user) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Usuário não encontrado',
+      });
+    }
+    return user;
   }
 
   @Post()
-  criar(@Body() usuario: Usuario, @Res() res) {
+  criar(@Body() usuario: Usuario): NestResponse {
     const usuarioCriado = this.usuarioService.criar(usuario);
-    res
-      .status(HttpStatus.CREATED)
-      .location(`/users/${usuarioCriado.nomeDeUsuario}`)
-      .json(usuarioCriado);
+    return new NestResponseBuilder()
+      .comStatus(HttpStatus.CREATED)
+      .comHeaders({
+        Location: `/users/${usuarioCriado.nomeDeUsuario}`,
+      })
+      .comBody(usuarioCriado)
+      .build();
   }
 }

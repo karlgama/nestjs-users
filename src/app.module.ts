@@ -1,3 +1,4 @@
+import { TransformaRepostaInterceptor } from './core/http/transforma-resposta.interceptor';
 import { UsuarioModule } from './usuario/usuario.module';
 import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
@@ -14,6 +15,10 @@ import { FiltroDeExececaoHttp } from './common/filtros/filtro-de-exececao-http.f
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformaRepostaInterceptor,
     },
   ],
 })
